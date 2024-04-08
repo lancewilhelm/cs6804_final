@@ -23,3 +23,12 @@ The results from document loading and embedding are stored in `storage`. This is
 `battle_app/` contains the code used to generate the HuggingFace space that was provided to human judges for feedback evaluation. This space can be found [here](https://huggingface.co/spaces/lancewilhelm/cs6804_final_battle).
 
 `analysis.ipynb` contains all of the EDA of the results and the power analysis used to understand how many samples were needed. This file also contains the hypothesis testing used to determine if the different RAG methods significantly affected the perceived trustworthiness.
+
+## API Keys
+
+You will need to create a `.env` file at the root of the project and include two API keys
+
+```bash
+OPENAI_API_KEY=
+SERPER_API_KEY=
+```
