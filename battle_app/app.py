@@ -30,6 +30,15 @@ scheduler = CommitScheduler(
 )
 
 def vote(vote, sample):
+    """Cast a vote for the sample.
+
+    Args:
+        vote (str): the vote cast by the user
+        sample (dict): the sample to vote on
+
+    Returns:
+        dict: the sample that was voted on
+    """
     battle_outcome = {
         'sample_index': str(sample['index']),
         'sample_a_method': sample['a_method'],
@@ -47,17 +56,30 @@ def vote(vote, sample):
     return sample
 
 def save_json(data: dict) -> None:
+    """Save the data to a JSON file.
+
+    Args:
+        data (dict): the data to save
+    """
     with scheduler.lock:
         with JSON_DATASET_PATH.open("a") as f:
             json.dump(data, f)
             f.write("\n")
 
+# Main App
 with gr.Blocks(theme=gr.themes.Soft()) as app:
-
     # Generate intial random feedback to show
     s = gr.State({})
 
     def get_random_feedback(sample):
+        """Get a random sample of feedback.
+
+        Args:
+            sample (dict): the sample to populate
+
+        Returns:
+            dict: the sample of feedback
+        """
         x = df.sample(1, replace=True, axis=0)
         sample['index'] = x.index[0]
         x = x.sample(2, replace=False, axis=1)
@@ -67,27 +89,34 @@ with gr.Blocks(theme=gr.themes.Soft()) as app:
         sample['b_feedback'] = x.values[0][1]
         # print(f"Sampled: {sample['index']}")
         return [sample, sample['a_feedback'], sample['b_feedback']]
-    
+
+    # Title and description
     gr.Markdown("## Feedback Battle")
     gr.Markdown("Below you will be provided with two pieces of feedback related to a hypothetical leadership communication utterance. Your task is to choose which of the two you feel is more **trustworthy**.")
 
+    # First Row - More titles
     with gr.Row():
         gr.Markdown("### Feedback A")
         gr.Markdown("### Feedback B")
 
+    # Second Row - Feedback
     with gr.Row():
         feedback_a = gr.Markdown(label='A')
         feedback_b = gr.Markdown(label='B')
 
+    # Third Row - Vote Buttons
     with gr.Row():
         gr.Markdown('### Vote Which is More Trustworthy')
         btn_a = gr.Button("A")
         btn_b = gr.Button("B")
         btn_tie = gr.Button("Tie")
 
+    # Functions of buttons
     btn_a.click(vote, inputs=[gr.State('A'), s], outputs=[s]).success(get_random_feedback, inputs=[s], outputs=[s, feedback_a, feedback_b])
     btn_b.click(vote, inputs=[gr.State('B'), s], outputs=[s]).success(get_random_feedback, inputs=[s], outputs=[s, feedback_a, feedback_b])
     btn_tie.click(vote, inputs=[gr.State('Tie'), s], outputs=[s]).success(get_random_feedback, inputs=[s], outputs=[s, feedback_a, feedback_b])
 
+    # Initial loading function
     app.load(get_random_feedback, inputs=[s], outputs=[s, feedback_a, feedback_b])
+
 app.launch()
